@@ -106,7 +106,7 @@ int main(
             output,
             NULL,
             _IOFBF,
-            1024 * 1024);
+            1024 * 1024 * 5);
     }
     else
     {
@@ -150,7 +150,7 @@ int main(
 
     Progress progress;
 
-    if (input != stdin) {
+    if (input != stdin && output != stdout) {
         progress_init(
         &progress,
         get_file_size(

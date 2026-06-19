@@ -253,8 +253,6 @@ static VisitResult extract_visitor(
 
         if (ec->time_fields
     &&
-    ec->time_fields->offset_hours
-    &&
     yyjson_is_str(
         ctx->value)
     &&
@@ -262,36 +260,72 @@ static VisitResult extract_visitor(
         ec->time_fields,
         output_key))
         {
-            char *shifted =
-                shift_rfc3339_time(
+            /*
+             * epoch
+             */
+            long long epoch =
+                rfc3339_to_epoch(
                     yyjson_get_str(
-                        ctx->value),
+                        ctx->value));
 
-                    ec->time_fields
-                        ->offset_hours);
-            if (shifted)
+            if (epoch >= 0)
             {
-                char key[256];
+                char epoch_key[256];
 
                 snprintf(
-                    key,
-                    sizeof(key),
-                    "%s_offset",
+                    epoch_key,
+                    sizeof(epoch_key),
+                    "%s_epoch",
                     output_key);
 
-                yyjson_mut_obj_add(
+                yyjson_mut_obj_add_int(
+                    ec->out_doc,
+
                     ec->out_root,
 
-                    yyjson_mut_strcpy(
-                        ec->out_doc,
-                        key),
+                    epoch_key,
 
-                    yyjson_mut_strcpy(
-                        ec->out_doc,
-                        shifted));
+                    epoch);
+            }
 
-                free(
-                    shifted);
+            /*
+             * offset
+             */
+            if (ec->time_fields
+                    ->offset_hours != 0)
+            {
+                char *shifted =
+                    shift_rfc3339_time(
+                        yyjson_get_str(
+                            ctx->value),
+
+                        ec->time_fields
+                            ->offset_hours);
+
+                if (shifted)
+                {
+                    char offset_key[256];
+
+                    snprintf(
+                        offset_key,
+                        sizeof(offset_key),
+                        "%s_offset",
+                        output_key);
+
+                    yyjson_mut_obj_add(
+                        ec->out_root,
+
+                        yyjson_mut_strcpy(
+                            ec->out_doc,
+                            offset_key),
+
+                        yyjson_mut_strcpy(
+                            ec->out_doc,
+                            shifted));
+
+                    free(
+                        shifted);
+                }
             }
         }
 

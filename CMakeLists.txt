@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.2)
+cmake_minimum_required(VERSION 3.28)
 project(cjq C)
 
 set(CMAKE_C_STANDARD 17)
@@ -35,3 +35,5 @@ target_link_libraries(
         PRIVATE
         argtable3
 )
+
+target_link_options(cjq PRIVATE -static)

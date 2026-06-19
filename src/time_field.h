@@ -34,3 +34,6 @@ int is_time_field(
 char *shift_rfc3339_time(
     const char *src,
     int offset_hours);
+
+long long rfc3339_to_epoch(
+    const char *src);

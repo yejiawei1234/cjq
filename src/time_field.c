@@ -247,3 +247,59 @@ char *shift_rfc3339_time(
 
     return result;
 }
+
+long long rfc3339_to_epoch(
+    const char *src)
+{
+    int year;
+    int mon;
+    int day;
+
+    int hour;
+    int min;
+    int sec;
+
+    if (sscanf(
+            src,
+            "%d-%d-%dT%d:%d:%d",
+            &year,
+            &mon,
+            &day,
+            &hour,
+            &min,
+            &sec)
+        != 6)
+    {
+        return -1;
+    }
+
+    struct tm tm_val;
+
+    memset(
+        &tm_val,
+        0,
+        sizeof(tm_val));
+
+    tm_val.tm_year =
+        year - 1900;
+
+    tm_val.tm_mon =
+        mon - 1;
+
+    tm_val.tm_mday =
+        day;
+
+    tm_val.tm_hour =
+        hour;
+
+    tm_val.tm_min =
+        min;
+
+    tm_val.tm_sec =
+        sec;
+
+    return
+        (long long)
+        timegm(
+            &tm_val);
+}

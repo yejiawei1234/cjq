@@ -111,11 +111,11 @@ void progress_update(
         bytes;
 
     /*
-     * 每 1MB 刷新一次
+     * 每 5MB 刷新一次
      */
     if (p->current_bytes
         - p->last_refresh
-        < 1024 * 1024)
+        < 1024 * 1024 * 5)
     {
         return;
     }
