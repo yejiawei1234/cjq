@@ -21,3 +21,19 @@ void extract_csv(
     TrackerSplitSet *tracker_set,
     FILE *out);
 
+typedef struct {
+    char *name;
+    char *value;
+} CsvColumn;
+
+typedef struct {
+    CsvColumn *columns;
+    int column_count;
+    int column_cap;
+
+    RuleSet *rules;
+    TimeFieldSet *time_fields;
+    TrackerSplitSet *tracker_set;
+
+    int found_count;
+} CsvContext;

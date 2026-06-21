@@ -3,6 +3,8 @@
 
 #include "writer.h"
 
+#include "tracker_split.h"
+
 /*
  * ============================================================
  * CSV Header
@@ -11,23 +13,112 @@
 
 void write_csv_header(
     FILE *out,
-    RuleSet *rules)
+    RuleSet *rules,
+    TimeFieldSet *time_fields,
+    TrackerSplitSet *tracker_set)
 {
+    int first = 1;
+
+    /*
+     * normal rule fields
+     */
     for (int i = 0;
          i < rules->count;
          i++)
     {
-        fprintf(
-            out,
-            "%s",
-            rules->rules[i].output_key);
-
-        if (i + 1
-            < rules->count)
+        if (!first)
         {
             fputc(
                 ',',
                 out);
+        }
+
+        first = 0;
+
+        fprintf(
+            out,
+            "%s",
+            rules->rules[i].output_key);
+    }
+
+    /*
+     * tracker split fields
+     */
+    if (tracker_set)
+    {
+        for (int i = 0;
+             i < tracker_set->count;
+             i++)
+        {
+            const char *field =
+                tracker_set->fields[i];
+
+            const char *p =
+                strrchr(
+                    field,
+                    '.');
+
+            const char *key =
+                p
+                ? p + 1
+                : field;
+
+            if (strcmp(
+                    key,
+                    "tracker_name")
+                == 0)
+            {
+                fprintf(
+                    out,
+                    ",network,campaign,adgroup,creative");
+            }
+            else
+            {
+                fprintf(
+                    out,
+                    ",%s_network",
+                    key);
+
+                fprintf(
+                    out,
+                    ",%s_campaign",
+                    key);
+
+                fprintf(
+                    out,
+                    ",%s_adgroup",
+                    key);
+
+                fprintf(
+                    out,
+                    ",%s_creative",
+                    key);
+            }
+        }
+    }
+
+    /*
+     * time fields
+     */
+    if (time_fields)
+    {
+        for (int i = 0;
+             i < time_fields->count;
+             i++)
+        {
+            fprintf(
+                out,
+                ",%s_epoch",
+                time_fields->fields[i]);
+
+            if (time_fields
+                    ->offset_hours != 0)
+            {
+                fprintf(
+                    out,
+                    ",%s_offset",
+                    time_fields->fields[i]);
+            }
         }
     }
 

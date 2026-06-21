@@ -25,6 +25,8 @@ add_executable(
         src/time_field.h
         src/tracker_split.c
         src/tracker_split.h
+        src/usage_log.c
+        src/usage_log.h
 )
 
 target_include_directories(

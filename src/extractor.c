@@ -9,6 +9,7 @@
 static char *
 value_to_json_string(
     yyjson_val *value);
+
 /*
  * ============================================================
  * Extract Context
@@ -37,33 +38,28 @@ typedef struct {
 
 static int rule_match(
     Rule *rule,
-    const VisitContext *ctx)
-{
-    if (rule->found)
-    {
+    const VisitContext *ctx) {
+    if (rule->found) {
         return 0;
     }
 
-    if (rule->type == RULE_KEY)
-    {
+    if (rule->type == RULE_KEY) {
         return
-            ctx->key &&
-            strcmp(
-                ctx->key,
-                rule->pattern) == 0;
+                ctx->key &&
+                strcmp(
+                    ctx->key,
+                    rule->pattern) == 0;
     }
 
-    if (rule->type == RULE_PATH)
-    {
-        if (!ctx->path)
-        {
+    if (rule->type == RULE_PATH) {
+        if (!ctx->path) {
             return 0;
         }
 
         return
-            strcmp(
-                ctx->path,
-                rule->pattern) == 0;
+                strcmp(
+                    ctx->path,
+                    rule->pattern) == 0;
     }
 
     return 0;
@@ -261,153 +257,142 @@ static VisitResult extract_visitor(
             should_split_tracker(
                 ec->tracker_set,
                 ctx->path,
-                output_key))
-                {
-                    TrackerParts parts;
+                output_key)) {
+            TrackerParts parts;
 
-                    if (split_tracker_name(
-                            yyjson_get_str(
-                                ctx->value),
-                            &parts) > 0)
-                    {
-                        const char *prefix =
-                            tracker_output_prefix(
-                                output_key);
-                        if (prefix[0] == '\0')
-                        {
-                            yyjson_mut_obj_add_str(
+            if (split_tracker_name(
+                    yyjson_get_str(
+                        ctx->value),
+                    &parts) > 0) {
+                const char *prefix =
+                        tracker_output_prefix(
+                            output_key);
+                if (prefix[0] == '\0') {
+                    yyjson_mut_obj_add_str(
+                        ec->out_doc,
+                        ec->out_root,
+                        "network",
+                        parts.network);
+
+                    if (parts.campaign[0]) {
+                        yyjson_mut_obj_add_str(
+                            ec->out_doc,
+                            ec->out_root,
+                            "campaign",
+                            parts.campaign);
+                    }
+
+                    if (parts.adgroup[0]) {
+                        yyjson_mut_obj_add_str(
+                            ec->out_doc,
+                            ec->out_root,
+                            "adgroup",
+                            parts.adgroup);
+                    }
+
+
+                    if (parts.creative[0]) {
+                        yyjson_mut_obj_add_str(
+                            ec->out_doc,
+                            ec->out_root,
+                            "creative",
+                            parts.creative);
+                    }
+                } else {
+                    char key[256];
+                    if (parts.network[0]) {
+                        snprintf(
+                            key,
+                            sizeof(key),
+                            "%s_network",
+                            prefix);
+
+                        yyjson_mut_obj_add(
+                            ec->out_root,
+
+                            yyjson_mut_strcpy(
                                 ec->out_doc,
-                                ec->out_root,
-                                "network",
-                                parts.network);
+                                key),
 
-                            if (parts.campaign[0]) {
-                                yyjson_mut_obj_add_str(
+                            yyjson_mut_strcpy(
                                 ec->out_doc,
-                                ec->out_root,
-                                "campaign",
-                                parts.campaign);
-                            }
+                                parts.network));
+                    }
+                    if (parts.campaign[0]) {
+                        snprintf(
+                            key,
+                            sizeof(key),
+                            "%s_campaign",
+                            prefix);
 
-                            if (parts.adgroup[0]) {
-                                yyjson_mut_obj_add_str(
+                        yyjson_mut_obj_add(
+                            ec->out_root,
+
+                            yyjson_mut_strcpy(
                                 ec->out_doc,
-                                ec->out_root,
-                                "adgroup",
-                                parts.adgroup);
-                            }
+                                key),
 
-
-                            if (parts.creative[0]) {
-                                yyjson_mut_obj_add_str(
+                            yyjson_mut_strcpy(
                                 ec->out_doc,
-                                ec->out_root,
-                                "creative",
-                                parts.creative);
-                            }
+                                parts.campaign));
+                    }
+                    if (parts.adgroup[0]) {
+                        snprintf(
+                            key,
+                            sizeof(key),
+                            "%s_adgroup",
+                            prefix);
 
-                        }
-                        else {
-                            char key[256];
-                            if (parts.network[0])
-                            {
-                                snprintf(
-                                    key,
-                                    sizeof(key),
-                                    "%s_network",
-                                    prefix);
+                        yyjson_mut_obj_add(
+                            ec->out_root,
 
-                                yyjson_mut_obj_add(
-                                    ec->out_root,
+                            yyjson_mut_strcpy(
+                                ec->out_doc,
+                                key),
 
-                                    yyjson_mut_strcpy(
-                                        ec->out_doc,
-                                        key),
+                            yyjson_mut_strcpy(
+                                ec->out_doc,
+                                parts.adgroup));
+                    }
+                    if (parts.creative[0]) {
+                        snprintf(
+                            key,
+                            sizeof(key),
+                            "%s_creative",
+                            prefix);
 
-                                    yyjson_mut_strcpy(
-                                        ec->out_doc,
-                                        parts.network));
-                            }
-                            if (parts.campaign[0])
-                            {
-                                snprintf(
-                                    key,
-                                    sizeof(key),
-                                    "%s_campaign",
-                                    prefix);
+                        yyjson_mut_obj_add(
+                            ec->out_root,
 
-                                yyjson_mut_obj_add(
-                                    ec->out_root,
+                            yyjson_mut_strcpy(
+                                ec->out_doc,
+                                key),
 
-                                    yyjson_mut_strcpy(
-                                        ec->out_doc,
-                                        key),
-
-                                    yyjson_mut_strcpy(
-                                        ec->out_doc,
-                                        parts.campaign));
-                            }
-                            if (parts.adgroup[0])
-                            {
-                                snprintf(
-                                    key,
-                                    sizeof(key),
-                                    "%s_adgroup",
-                                    prefix);
-
-                                yyjson_mut_obj_add(
-                                    ec->out_root,
-
-                                    yyjson_mut_strcpy(
-                                        ec->out_doc,
-                                        key),
-
-                                    yyjson_mut_strcpy(
-                                        ec->out_doc,
-                                        parts.adgroup));
-                            }
-                            if (parts.creative[0])
-                            {
-                                snprintf(
-                                    key,
-                                    sizeof(key),
-                                    "%s_creative",
-                                    prefix);
-
-                                yyjson_mut_obj_add(
-                                    ec->out_root,
-
-                                    yyjson_mut_strcpy(
-                                        ec->out_doc,
-                                        key),
-
-                                    yyjson_mut_strcpy(
-                                        ec->out_doc,
-                                        parts.creative));
-                            }
-                        }
+                            yyjson_mut_strcpy(
+                                ec->out_doc,
+                                parts.creative));
                     }
                 }
+            }
+        }
 
         if (ec->time_fields
-    &&
-    yyjson_is_str(
-        ctx->value)
-    &&
-    is_time_field(
-        ec->time_fields,
-        output_key))
-        {
+            &&
+            yyjson_is_str(
+                ctx->value)
+            &&
+            is_time_field(
+                ec->time_fields,
+                output_key)) {
             /*
              * epoch
              */
             long long epoch =
-                rfc3339_to_epoch(
-                    yyjson_get_str(
-                        ctx->value));
+                    rfc3339_to_epoch(
+                        yyjson_get_str(
+                            ctx->value));
 
-            if (epoch >= 0)
-            {
+            if (epoch >= 0) {
                 char epoch_key[256];
 
                 snprintf(
@@ -430,18 +415,16 @@ static VisitResult extract_visitor(
              * offset
              */
             if (ec->time_fields
-                    ->offset_hours != 0)
-            {
+                ->offset_hours != 0) {
                 char *shifted =
-                    shift_rfc3339_time(
-                        yyjson_get_str(
-                            ctx->value),
+                        shift_rfc3339_time(
+                            yyjson_get_str(
+                                ctx->value),
 
-                        ec->time_fields
+                            ec->time_fields
                             ->offset_hours);
 
-                if (shifted)
-                {
+                if (shifted) {
                     char offset_key[256];
 
                     snprintf(
@@ -472,8 +455,7 @@ static VisitResult extract_visitor(
         ec->found_count++;
 
         if (ec->found_count ==
-            ec->rules->count)
-        {
+            ec->rules->count) {
             return VISIT_STOP;
         }
     }
@@ -513,22 +495,22 @@ void extract_json(
     ExtractContext ec = {
 
         .rules =
-            rules,
+        rules,
 
         .out_doc =
-            out_doc,
+        out_doc,
 
         .out_root =
-            root,
+        root,
 
         .time_fields =
-            time_fields,
+        time_fields,
 
         .tracker_set =
-            tracker_set,
+        tracker_set,
 
         .found_count =
-            0
+        0
     };
 
     bfs_walk(
@@ -566,50 +548,256 @@ void extract_json(
         out_doc);
 }
 
-typedef struct {
+static void csv_add_column(
+    CsvContext *ctx,
+    const char *name,
+    const char *value) {
+    for (int i = 0;
+         i < ctx->column_count;
+         i++) {
+        if (strcmp(
+                ctx->columns[i].name,
+                name) == 0) {
+            free(
+                ctx->columns[i].value);
 
-    RuleSet *rules;
+            ctx->columns[i].value =
+                    strdup(
+                        value
+                            ? value
+                            : "");
 
-    char **values;
+            return;
+        }
+    }
 
+    if (ctx->column_count
+        == ctx->column_cap) {
+        int new_cap =
+                ctx->column_cap == 0
+                    ? 16
+                    : ctx->column_cap * 2;
 
-    TimeFieldSet *time_fields;
-    TrackerSplitSet *tracker_set;
-    int found_count;
+        ctx->columns =
+                realloc(
+                    ctx->columns,
+                    sizeof(CsvColumn)
+                    * new_cap);
 
-} CsvContext;
+        ctx->column_cap =
+                new_cap;
+    }
+
+    CsvColumn *col =
+            &ctx->columns[
+                ctx->column_count++];
+
+    col->name =
+            strdup(name);
+
+    col->value =
+            strdup(
+                value
+                    ? value
+                    : "");
+}
+
+static const char *
+csv_get_value(
+    CsvContext *ctx,
+    const char *name) {
+    for (int i = 0;
+         i < ctx->column_count;
+         i++) {
+        if (strcmp(
+                ctx->columns[i].name,
+                name) == 0) {
+            return
+                    ctx->columns[i].value;
+        }
+    }
+
+    return "";
+}
 
 static VisitResult csv_visitor(
     const VisitContext *ctx,
-    void *user_data)
-{
+    void *user_data) {
     CsvContext *cc =
-        (CsvContext *)user_data;
+            (CsvContext *) user_data;
 
     for (int i = 0;
          i < cc->rules->count;
-         i++)
-    {
+         i++) {
         Rule *rule =
-            &cc->rules->rules[i];
+                &cc->rules->rules[i];
 
         if (!rule_match(
-                rule,
-                ctx))
-        {
+            rule,
+            ctx)) {
             continue;
         }
+
+        const char *output_key =
+                rule->output_key;
 
         /*
          * string
          */
         if (yyjson_is_str(
-                ctx->value))
-        {
-            cc->values[i] =
-                strdup(
+            ctx->value)) {
+            const char *str =
                     yyjson_get_str(
-                        ctx->value));
+                        ctx->value);
+
+            csv_add_column(
+                cc,
+                output_key,
+                str);
+
+            /*
+             * tracker split
+             */
+            if (cc->tracker_set
+                &&
+                should_split_tracker(
+                    cc->tracker_set,
+                    ctx->path,
+                    output_key)) {
+                TrackerParts parts;
+
+                if (split_tracker_name(
+                        str,
+                        &parts) > 0) {
+                    const char *prefix =
+                            tracker_output_prefix(
+                                output_key);
+
+                    char key[256];
+
+                    if (parts.network[0]) {
+                        snprintf(
+                            key,
+                            sizeof(key),
+                            prefix[0]
+                            ? "%s_network"
+                            : "network",
+                            prefix);
+
+                        csv_add_column(
+                            cc,
+                            key,
+                            parts.network);
+                    }
+
+                    if (parts.campaign[0]) {
+                        snprintf(
+                            key,
+                            sizeof(key),
+                            prefix[0]
+                            ? "%s_campaign"
+                            : "campaign",
+                            prefix);
+
+                        csv_add_column(
+                            cc,
+                            key,
+                            parts.campaign);
+                    }
+
+                    if (parts.adgroup[0]) {
+                        snprintf(
+                            key,
+                            sizeof(key),
+                            prefix[0]
+                            ? "%s_adgroup"
+                            : "adgroup",
+                            prefix);
+
+                        csv_add_column(
+                            cc,
+                            key,
+                            parts.adgroup);
+                    }
+
+                    if (parts.creative[0]) {
+                        snprintf(
+                            key,
+                            sizeof(key),
+                            prefix[0]
+                            ? "%s_creative"
+                            : "creative",
+                            prefix);
+
+                        csv_add_column(
+                            cc,
+                            key,
+                            parts.creative);
+                    }
+                }
+            }
+
+            /*
+             * time fields
+             */
+            if (cc->time_fields
+                &&
+                is_time_field(
+                    cc->time_fields,
+                    output_key)) {
+                long long epoch =
+                        rfc3339_to_epoch(
+                            str);
+
+                if (epoch >= 0) {
+                    char epoch_key[256];
+                    char epoch_value[64];
+
+                    snprintf(
+                        epoch_key,
+                        sizeof(epoch_key),
+                        "%s_epoch",
+                        output_key);
+
+                    snprintf(
+                        epoch_value,
+                        sizeof(epoch_value),
+                        "%lld",
+                        epoch);
+
+                    csv_add_column(
+                        cc,
+                        epoch_key,
+                        epoch_value);
+                }
+
+                if (cc->time_fields
+                    ->offset_hours != 0) {
+                    char *shifted =
+                            shift_rfc3339_time(
+                                str,
+                                cc->time_fields
+                                ->offset_hours);
+
+                    if (shifted) {
+                        char offset_key[256];
+
+                        snprintf(
+                            offset_key,
+                            sizeof(offset_key),
+                            "%s_offset",
+                            output_key);
+
+                        csv_add_column(
+                            cc,
+                            offset_key,
+                            shifted);
+
+                        free(
+                            shifted);
+                    }
+                }
+            }
         }
 
         /*
@@ -617,8 +805,7 @@ static VisitResult csv_visitor(
          */
         else if (
             yyjson_is_int(
-                ctx->value))
-        {
+                ctx->value)) {
             char buf[64];
 
             snprintf(
@@ -629,8 +816,10 @@ static VisitResult csv_visitor(
                 yyjson_get_sint(
                     ctx->value));
 
-            cc->values[i] =
-                strdup(buf);
+            csv_add_column(
+                cc,
+                output_key,
+                buf);
         }
 
         /*
@@ -638,8 +827,7 @@ static VisitResult csv_visitor(
          */
         else if (
             yyjson_is_uint(
-                ctx->value))
-        {
+                ctx->value)) {
             char buf[64];
 
             snprintf(
@@ -650,8 +838,10 @@ static VisitResult csv_visitor(
                 yyjson_get_uint(
                     ctx->value));
 
-            cc->values[i] =
-                strdup(buf);
+            csv_add_column(
+                cc,
+                output_key,
+                buf);
         }
 
         /*
@@ -659,8 +849,7 @@ static VisitResult csv_visitor(
          */
         else if (
             yyjson_is_real(
-                ctx->value))
-        {
+                ctx->value)) {
             char buf[64];
 
             snprintf(
@@ -670,8 +859,10 @@ static VisitResult csv_visitor(
                 yyjson_get_real(
                     ctx->value));
 
-            cc->values[i] =
-                strdup(buf);
+            csv_add_column(
+                cc,
+                output_key,
+                buf);
         }
 
         /*
@@ -679,12 +870,12 @@ static VisitResult csv_visitor(
          */
         else if (
             yyjson_is_bool(
-                ctx->value))
-        {
-            cc->values[i] =
-                strdup(
-                    yyjson_get_bool(
-                        ctx->value)
+                ctx->value)) {
+            csv_add_column(
+                cc,
+                output_key,
+                yyjson_get_bool(
+                    ctx->value)
                     ? "true"
                     : "false");
         }
@@ -694,63 +885,58 @@ static VisitResult csv_visitor(
          */
         else if (
             yyjson_is_null(
-                ctx->value))
-        {
-            cc->values[i] =
-                strdup("");
+                ctx->value)) {
+            csv_add_column(
+                cc,
+                output_key,
+                "");
         }
 
         /*
          * object / array
-         *
-         * serialize to json string
          */
         else if (
             yyjson_is_obj(
                 ctx->value)
-
             ||
-
             yyjson_is_arr(
-                ctx->value))
-        {
+                ctx->value)) {
             char *json =
-                value_to_json_string(
-                    ctx->value);
+                    value_to_json_string(
+                        ctx->value);
 
-            if (json)
-            {
-                cc->values[i] =
-                    strdup(json);
+            if (json) {
+                csv_add_column(
+                    cc,
+                    output_key,
+                    json);
 
-                free(json);
-            }
-            else
-            {
-                cc->values[i] =
-                    strdup("");
+                free(
+                    json);
+            } else {
+                csv_add_column(
+                    cc,
+                    output_key,
+                    "");
             }
         }
 
         /*
          * fallback
          */
-        else
-        {
-            cc->values[i] =
-                strdup("");
+        else {
+            csv_add_column(
+                cc,
+                output_key,
+                "");
         }
 
         rule->found = 1;
 
         cc->found_count++;
 
-        /*
-         * all rules found
-         */
         if (cc->found_count ==
-            cc->rules->count)
-        {
+            cc->rules->count) {
             return VISIT_STOP;
         }
     }
@@ -759,31 +945,29 @@ static VisitResult csv_visitor(
 }
 
 static char *
-    value_to_json_string(
-    yyjson_val *value)
-{
+value_to_json_string(
+    yyjson_val *value) {
     yyjson_mut_doc *doc =
-        yyjson_mut_doc_new(NULL);
+            yyjson_mut_doc_new(NULL);
 
-    if (!doc)
-    {
+    if (!doc) {
         return NULL;
     }
 
     yyjson_mut_val *root =
-        clone_value(
-            doc,
-            value);
+            clone_value(
+                doc,
+                value);
 
     yyjson_mut_doc_set_root(
         doc,
         root);
 
     char *json =
-        yyjson_mut_write(
-            doc,
-            0,
-            NULL);
+            yyjson_mut_write(
+                doc,
+                0,
+                NULL);
 
     yyjson_mut_doc_free(
         doc);
@@ -791,45 +975,42 @@ static char *
     return json;
 }
 
+
 void extract_csv(
     yyjson_doc *doc,
     RuleSet *rules,
     TimeFieldSet *time_fields,
     TrackerSplitSet *tracker_set,
-    FILE *out)
-{
+    FILE *out) {
     for (int i = 0;
          i < rules->count;
-         i++)
-    {
+         i++) {
         rules->rules[i].found =
-            0;
-    }
-
-    char **values =
-        calloc(
-            rules->count,
-            sizeof(char *));
-
-    if (!values)
-    {
-        return;
+                0;
     }
 
     CsvContext cc = {
 
+        .columns =
+        NULL,
+
+        .column_count =
+        0,
+
+        .column_cap =
+        0,
+
         .rules =
-            rules,
+        rules,
 
-        .values =
-            values,
+        .time_fields =
+        time_fields,
 
-        .time_fields = time_fields,
-
-        .tracker_set = tracker_set,
+        .tracker_set =
+        tracker_set,
 
         .found_count =
-            0
+        0
     };
 
     bfs_walk(
@@ -841,28 +1022,249 @@ void extract_csv(
 
         &cc);
 
-    /*
-     * nothing matched
-     */
-    if (cc.found_count == 0)
-    {
-        free(values);
+    if (cc.found_count == 0) {
+        free(
+            cc.columns);
 
         return;
     }
 
-    csv_write_row(
-        out,
-        values,
-        rules->count);
+    /*
+     * --------------------------------------------------------
+     * Rule Columns
+     * --------------------------------------------------------
+     */
 
     for (int i = 0;
          i < rules->count;
-         i++)
-    {
-        free(
-            values[i]);
+         i++) {
+        csv_write_field(
+            out,
+            csv_get_value(
+                &cc,
+                rules->rules[i]
+                .output_key));
+
+        if (i + 1
+            < rules->count) {
+            fputc(
+                ',',
+                out);
+        }
     }
 
-    free(values);
+    /*
+     * --------------------------------------------------------
+     * Tracker Columns
+     * --------------------------------------------------------
+     */
+    if (tracker_set
+    && tracker_set->count > 0)
+    {
+        fputc(
+            ',',
+            out);
+    }
+
+    if (tracker_set) {
+        for (int i = 0;
+             i < tracker_set->count;
+             i++) {
+            const char *field =
+                    tracker_set->fields[i];
+
+            const char *p =
+                    strrchr(
+                        field,
+                        '.');
+
+            const char *key =
+                    p
+                        ? p + 1
+                        : field;
+
+            char name[256];
+
+            if (strcmp(
+                    key,
+                    "tracker_name")
+                == 0) {
+                csv_write_field(
+                    out,
+                    csv_get_value(
+                        &cc,
+                        "network"));
+
+                fputc(
+                    ',',
+                    out);
+
+                csv_write_field(
+                    out,
+                    csv_get_value(
+                        &cc,
+                        "campaign"));
+
+                fputc(
+                    ',',
+                    out);
+
+                csv_write_field(
+                    out,
+                    csv_get_value(
+                        &cc,
+                        "adgroup"));
+
+                fputc(
+                    ',',
+                    out);
+
+                csv_write_field(
+                    out,
+                    csv_get_value(
+                        &cc,
+                        "creative"));
+            } else {
+                snprintf(
+                    name,
+                    sizeof(name),
+                    "%s_network",
+                    key);
+
+                csv_write_field(
+                    out,
+                    csv_get_value(
+                        &cc,
+                        name));
+
+                fputc(
+                    ',',
+                    out);
+
+                snprintf(
+                    name,
+                    sizeof(name),
+                    "%s_campaign",
+                    key);
+
+                csv_write_field(
+                    out,
+                    csv_get_value(
+                        &cc,
+                        name));
+
+                fputc(
+                    ',',
+                    out);
+
+                snprintf(
+                    name,
+                    sizeof(name),
+                    "%s_adgroup",
+                    key);
+
+                csv_write_field(
+                    out,
+                    csv_get_value(
+                        &cc,
+                        name));
+
+                fputc(
+                    ',',
+                    out);
+
+                snprintf(
+                    name,
+                    sizeof(name),
+                    "%s_creative",
+                    key);
+
+                csv_write_field(
+                    out,
+                    csv_get_value(
+                        &cc,
+                        name));
+            }
+
+            if (i + 1
+                < tracker_set->count) {
+                fputc(
+                    ',',
+                    out);
+            }
+        }
+    }
+
+    /*
+     * Time Columns
+     */
+    
+
+    if (time_fields) {
+        for (int i = 0;
+             i < time_fields->count;
+             i++) {
+            char key[256];
+
+            snprintf(
+                key,
+                sizeof(key),
+                "%s_epoch",
+                time_fields->fields[i]);
+
+            fputc(
+                ',',
+                out);
+
+            csv_write_field(
+                out,
+                csv_get_value(
+                    &cc,
+                    key));
+
+            if (time_fields
+                ->offset_hours != 0) {
+                snprintf(
+                    key,
+                    sizeof(key),
+                    "%s_offset",
+                    time_fields->fields[i]);
+
+                fputc(
+                    ',',
+                    out);
+
+                csv_write_field(
+                    out,
+                    csv_get_value(
+                        &cc,
+                        key));
+                }
+             }
+    }
+
+    fputc(
+        '\n',
+        out);
+
+    /*
+     * --------------------------------------------------------
+     * Cleanup
+     * --------------------------------------------------------
+     */
+
+    for (int i = 0;
+         i < cc.column_count;
+         i++) {
+        free(
+            cc.columns[i]
+            .name);
+
+        free(
+            cc.columns[i]
+            .value);
+    }
+
+    free(
+        cc.columns);
 }

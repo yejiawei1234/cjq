@@ -10,6 +10,7 @@
 #include "writer.h"
 #include "time_field.h"
 #include "tracker_split.h"
+#include "usage_log.h"
 
 int main(
     int argc,
@@ -31,6 +32,7 @@ int main(
     {
         return 1;
     }
+    write_usage_log();
 
     /*
      * --------------------------------------------------------
@@ -114,12 +116,7 @@ int main(
         output = stdout;
     }
 
-    if (cfg.csv_mode)
-    {
-        write_csv_header(
-            output,
-            &rules);
-    }
+
 
     if (!output)
     {
@@ -149,17 +146,7 @@ int main(
      * --------------------------------------------------------
      */
 
-    Progress progress;
 
-    if (input != stdin && output != stdout) {
-        progress_init(
-        &progress,
-        get_file_size(
-            input));
-        show_progress = 1;
-    } else {
-        show_progress = 0;
-    }
 
     TrackerSplitSet tracker_set;
 
@@ -177,6 +164,29 @@ int main(
             sizeof(tracker_set));
     }
 
+
+
+    Progress progress;
+
+    if (input != stdin && output != stdout) {
+        progress_init(
+        &progress,
+        get_file_size(
+            input));
+        show_progress = 1;
+    } else {
+        show_progress = 0;
+    }
+
+
+    if (cfg.csv_mode)
+    {
+        write_csv_header(
+            output,
+            &rules,
+            &time_fields,
+            &tracker_set);
+    }
 
     /*
      * --------------------------------------------------------

@@ -4,6 +4,8 @@
 
 #ifndef CJQ_WRITER_H
 #define CJQ_WRITER_H
+#include "time_field.h"
+#include "tracker_split.h"
 
 #endif //CJQ_WRITER_H
 
@@ -19,7 +21,9 @@
  */
 void write_csv_header(
     FILE *out,
-    RuleSet *rules);
+    RuleSet *rules,
+    TimeFieldSet *time_fields,
+    TrackerSplitSet *tracker_set);
 
 /*
  * CSV Field
