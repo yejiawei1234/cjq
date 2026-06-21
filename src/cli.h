@@ -13,7 +13,9 @@ typedef struct {
     char *time_fields;
 
     int offset_hours;
+    int split_tracker;
 
+    char *split_tracker_fields;
 } CliConfig;
 
 int cli_parse(

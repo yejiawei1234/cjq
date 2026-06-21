@@ -4,34 +4,67 @@
 
 #include "cli.h"
 
+#include <stdlib.h>
+#include <string.h>
+
+
+static const char *
+last_key(
+    const char *path)
+{
+    const char *p =
+        strrchr(
+            path,
+            '.');
+
+    return p
+        ? p + 1
+        : path;
+}
+
 int cli_parse(
     int argc,
     char **argv,
     CliConfig *cfg) {
-    struct arg_str *input;
-    struct arg_str *output;
+    struct arg_file *input;
+    struct arg_file *output;
     struct arg_str *keys;
     struct arg_lit *help;
     struct arg_lit *csv;
-    struct arg_end *end;
     struct arg_str *time_fields;
-
     struct arg_int *offset;
+    struct arg_lit *split_tracker;
+
+    struct arg_str *split_tracker_fields;
+    struct arg_end *end;
 
     void *argtable[] = {
 
         help =
-        arg_lit0(
-            "h",
-            "help",
-            "show help"),
+            arg_lit0(
+                "h",
+                "help",
+                "show help"),
 
         time_fields =
-        arg_str0(
-            "t",
-            "time_fields",
-            "<fields>",
-            "timestamp fields"),
+            arg_str0(
+                "t",
+                "time_fields",
+                "<datetime field>",
+                "timestamp fields"),
+
+        split_tracker =
+            arg_lit0(
+                "s",
+                "split_tracker_name",
+                "split tracker"),
+
+        split_tracker_fields =
+            arg_str0(
+                NULL,
+                "split_tracker_field",
+                "<fields>",
+                "tracker fields"),
 
         offset =
             arg_int0(
@@ -41,32 +74,32 @@ int cli_parse(
                 "timezone offset"),
 
         csv =
-        arg_lit0(
-            NULL,
-            "csv",
-            "csv output"),
+            arg_lit0(
+                NULL,
+                "csv",
+                "csv output"),
 
         input =
-        arg_str0(
-            "i",
-            "input",
-            "<file>",
-            "input jsonl"),
+            arg_file0(
+                "i",
+                "input",
+                "<file>",
+                "input jsonl"),
 
 
         output =
-        arg_str0(
-            "o",
-            "output",
-            "<file>",
-            "output file path"),
+            arg_file0(
+                "o",
+                "output",
+                "<file>",
+                "output file path"),
 
         keys =
-        arg_str1(
-            "k",
-            "keys",
-            "<keys>",
-            "extract keys"),
+            arg_str0(
+                "k",
+                "keys",
+                "<keys>",
+                "extract keys"),
 
 
         end =
@@ -108,12 +141,11 @@ int cli_parse(
     }
 
     // cfg->input = (char *) input->sval[0];
-    cfg->input = input->count ? (char *) input->sval[0] : NULL;
+    cfg->input = input->count ? (char *)input->filename[0] : NULL;
 
-    cfg->output = output->count ? (char *) output->sval[0] : NULL;
+    cfg->output = output->count ? (char *) output->filename[0] : NULL;
 
-    cfg->keys =
-            (char *) keys->sval[0];
+    cfg->keys = (char *) keys->sval[0];
 
     cfg->csv_mode =
             csv->count > 0;
@@ -123,10 +155,65 @@ int cli_parse(
             ? (char *)time_fields->sval[0]
             : NULL;
 
-    cfg->offset_hours =
-            offset->count
-                ? offset->ival[0]
-                : 0;
+    cfg->offset_hours = offset->count ? offset->ival[0]: 0;
+
+    cfg->split_tracker = split_tracker->count > 0;
+
+    cfg->split_tracker_fields =
+                                split_tracker_fields->count
+                                    ? (char *)
+                                      split_tracker_fields->sval[0]
+                                    : NULL;
+
+    if (cfg->split_tracker)
+    {
+        const char *tracker_key =
+            "tracker_name";
+
+        if (!strstr(
+                cfg->keys,
+                tracker_key))
+        {
+            char *new_keys =
+                malloc(
+                    strlen(cfg->keys)
+                    + strlen(tracker_key)
+                    + 2);
+
+            sprintf(
+                new_keys,
+                "%s,%s",
+                cfg->keys,
+                tracker_key);
+
+            cfg->keys =
+                new_keys;
+        }
+    }
+    if (cfg->split_tracker_fields)
+    {
+        const char *tracker_key = last_key(
+            cfg->split_tracker_fields);
+        if (!strstr(
+                cfg->keys,
+                tracker_key))
+        {
+            char *new_keys =
+                malloc(
+                    strlen(cfg->keys)
+                    + strlen(tracker_key)
+                    + 2);
+
+            sprintf(
+                new_keys,
+                "%s,%s",
+                cfg->keys,
+                tracker_key);
+
+            cfg->keys =
+                new_keys;
+        }
+    }
 
     arg_freetable(
         argtable,

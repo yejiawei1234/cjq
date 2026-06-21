@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.28)
 project(cjq C)
+option(STATIC_BUILD "Build static executable" OFF)
 
 set(CMAKE_C_STANDARD 17)
 
@@ -22,6 +23,8 @@ add_executable(
         src/writer.h
         src/time_field.c
         src/time_field.h
+        src/tracker_split.c
+        src/tracker_split.h
 )
 
 target_include_directories(
@@ -36,4 +39,6 @@ target_link_libraries(
         argtable3
 )
 
-target_link_options(cjq PRIVATE -static)
+if(STATIC_BUILD)
+    target_link_options(cjq PRIVATE -static)
+endif ()

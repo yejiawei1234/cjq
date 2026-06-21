@@ -24,6 +24,8 @@ typedef struct {
 
     TimeFieldSet *time_fields;
 
+    TrackerSplitSet *tracker_set;
+
     int found_count;
 } ExtractContext;
 
@@ -251,6 +253,142 @@ static VisitResult extract_visitor(
             output_key,
             ctx->value);
 
+        if (ec->tracker_set
+            &&
+            yyjson_is_str(
+                ctx->value)
+            &&
+            should_split_tracker(
+                ec->tracker_set,
+                ctx->path,
+                output_key))
+                {
+                    TrackerParts parts;
+
+                    if (split_tracker_name(
+                            yyjson_get_str(
+                                ctx->value),
+                            &parts) > 0)
+                    {
+                        const char *prefix =
+                            tracker_output_prefix(
+                                output_key);
+                        if (prefix[0] == '\0')
+                        {
+                            yyjson_mut_obj_add_str(
+                                ec->out_doc,
+                                ec->out_root,
+                                "network",
+                                parts.network);
+
+                            if (parts.campaign[0]) {
+                                yyjson_mut_obj_add_str(
+                                ec->out_doc,
+                                ec->out_root,
+                                "campaign",
+                                parts.campaign);
+                            }
+
+                            if (parts.adgroup[0]) {
+                                yyjson_mut_obj_add_str(
+                                ec->out_doc,
+                                ec->out_root,
+                                "adgroup",
+                                parts.adgroup);
+                            }
+
+
+                            if (parts.creative[0]) {
+                                yyjson_mut_obj_add_str(
+                                ec->out_doc,
+                                ec->out_root,
+                                "creative",
+                                parts.creative);
+                            }
+
+                        }
+                        else {
+                            char key[256];
+                            if (parts.network[0])
+                            {
+                                snprintf(
+                                    key,
+                                    sizeof(key),
+                                    "%s_network",
+                                    prefix);
+
+                                yyjson_mut_obj_add(
+                                    ec->out_root,
+
+                                    yyjson_mut_strcpy(
+                                        ec->out_doc,
+                                        key),
+
+                                    yyjson_mut_strcpy(
+                                        ec->out_doc,
+                                        parts.network));
+                            }
+                            if (parts.campaign[0])
+                            {
+                                snprintf(
+                                    key,
+                                    sizeof(key),
+                                    "%s_campaign",
+                                    prefix);
+
+                                yyjson_mut_obj_add(
+                                    ec->out_root,
+
+                                    yyjson_mut_strcpy(
+                                        ec->out_doc,
+                                        key),
+
+                                    yyjson_mut_strcpy(
+                                        ec->out_doc,
+                                        parts.campaign));
+                            }
+                            if (parts.adgroup[0])
+                            {
+                                snprintf(
+                                    key,
+                                    sizeof(key),
+                                    "%s_adgroup",
+                                    prefix);
+
+                                yyjson_mut_obj_add(
+                                    ec->out_root,
+
+                                    yyjson_mut_strcpy(
+                                        ec->out_doc,
+                                        key),
+
+                                    yyjson_mut_strcpy(
+                                        ec->out_doc,
+                                        parts.adgroup));
+                            }
+                            if (parts.creative[0])
+                            {
+                                snprintf(
+                                    key,
+                                    sizeof(key),
+                                    "%s_creative",
+                                    prefix);
+
+                                yyjson_mut_obj_add(
+                                    ec->out_root,
+
+                                    yyjson_mut_strcpy(
+                                        ec->out_doc,
+                                        key),
+
+                                    yyjson_mut_strcpy(
+                                        ec->out_doc,
+                                        parts.creative));
+                            }
+                        }
+                    }
+                }
+
         if (ec->time_fields
     &&
     yyjson_is_str(
@@ -353,6 +491,7 @@ void extract_json(
     yyjson_doc *doc,
     RuleSet *rules,
     TimeFieldSet *time_fields,
+    TrackerSplitSet *tracker_set,
     FILE *out) {
     for (int i = 0;
          i < rules->count;
@@ -384,6 +523,9 @@ void extract_json(
 
         .time_fields =
             time_fields,
+
+        .tracker_set =
+            tracker_set,
 
         .found_count =
             0
@@ -432,6 +574,7 @@ typedef struct {
 
 
     TimeFieldSet *time_fields;
+    TrackerSplitSet *tracker_set;
     int found_count;
 
 } CsvContext;
@@ -652,6 +795,7 @@ void extract_csv(
     yyjson_doc *doc,
     RuleSet *rules,
     TimeFieldSet *time_fields,
+    TrackerSplitSet *tracker_set,
     FILE *out)
 {
     for (int i = 0;
@@ -681,6 +825,8 @@ void extract_csv(
             values,
 
         .time_fields = time_fields,
+
+        .tracker_set = tracker_set,
 
         .found_count =
             0

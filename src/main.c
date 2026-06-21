@@ -9,6 +9,7 @@
 #include "extractor.h"
 #include "writer.h"
 #include "time_field.h"
+#include "tracker_split.h"
 
 int main(
     int argc,
@@ -160,6 +161,21 @@ int main(
         show_progress = 0;
     }
 
+    TrackerSplitSet tracker_set;
+
+    if (cfg.split_tracker || cfg.split_tracker_fields)
+    {
+        tracker_split_init(
+            &tracker_set,
+            cfg.split_tracker_fields);
+    }
+    else
+    {
+        memset(
+            &tracker_set,
+            0,
+            sizeof(tracker_set));
+    }
 
 
     /*
@@ -202,6 +218,7 @@ int main(
                 doc,
                 &rules,
                 &time_fields,
+                &tracker_set,
                 output);
         }
         else
@@ -210,6 +227,7 @@ int main(
                 doc,
                 &rules,
                 &time_fields,
+                &tracker_set,
                 output);
         }
 
@@ -250,6 +268,12 @@ int main(
     rule_destroy(&rules);
 
     time_field_destroy(&time_fields);
+
+    if (cfg.split_tracker)
+    {
+        tracker_split_destroy(
+            &tracker_set);
+    }
 
     return 0;
 }

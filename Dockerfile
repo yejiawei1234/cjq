@@ -1,10 +1,9 @@
 
-FROM --platform=linux/amd64 ubuntu:24.04
+FROM --platform=linux/amd64 debian:bullseye
 
-RUN apt update && apt install -y \
+RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
-    ninja-build \
-    gdb
+    ninja-build
 
 WORKDIR /src
