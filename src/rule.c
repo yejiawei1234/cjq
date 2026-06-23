@@ -6,8 +6,7 @@
 int rule_parse(
     const char *keys,
     RuleSet *set) {
-    char *copy =
-            strdup(keys);
+    char *copy = strdup(keys);
 
     if (!copy) {
         return -1;
@@ -15,9 +14,7 @@ int rule_parse(
 
     int count = 1;
 
-    for (char *p = copy;
-         *p;
-         p++) {
+    for (char *p = copy; *p;p++) {
         if (*p == ',') {
             count++;
         }
@@ -45,8 +42,7 @@ int rule_parse(
                 ",");
 
     while (token) {
-        Rule *rule =
-                &set->rules[idx++];
+        Rule *rule = &set->rules[idx++];
 
         char *alias =
                 strchr(

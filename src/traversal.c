@@ -280,12 +280,6 @@ void bfs_walk(
     root_node.node =
         root;
 
-    root_node.depth =
-        0;
-
-    root_node.path =
-        NULL;
-
     enqueue(
         &q,
         &root_node);

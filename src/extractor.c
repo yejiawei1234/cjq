@@ -226,7 +226,7 @@ static VisitResult extract_visitor(
     const VisitContext *ctx,
     void *user_data) {
     ExtractContext *ec =
-            (ExtractContext *) user_data;
+            user_data;
 
     for (int i = 0;
          i < ec->rules->count;
@@ -1198,7 +1198,7 @@ void extract_csv(
     /*
      * Time Columns
      */
-    
+
 
     if (time_fields) {
         for (int i = 0;
