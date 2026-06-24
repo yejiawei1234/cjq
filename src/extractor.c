@@ -513,14 +513,23 @@ void extract_json(
         0
     };
 
+    TraversalOptions opt = {
+
+        .build_path =
+            rules->has_path_rule,
+
+        .parse_embedded_json =
+            1,
+
+        .max_embedded_depth =
+            5
+    };
+
     bfs_walk(
-        yyjson_doc_get_root(doc),
-
-        rules->has_path_rule,
-
-        extract_visitor,
-
-        &ec);
+    yyjson_doc_get_root(doc),
+    &opt,
+    extract_visitor,
+    &ec);
 
     if (ec.found_count == 0) {
         yyjson_mut_doc_free(
@@ -1013,13 +1022,22 @@ void extract_csv(
         0
     };
 
+    TraversalOptions opt = {
+
+        .build_path =
+            rules->has_path_rule,
+
+        .parse_embedded_json =
+            1,
+
+        .max_embedded_depth =
+            5
+    };
+
     bfs_walk(
         yyjson_doc_get_root(doc),
-
-        rules->has_path_rule,
-
-        csv_visitor,
-
+        &opt,
+        extract_visitor,
         &cc);
 
     if (cc.found_count == 0) {
