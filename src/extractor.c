@@ -953,37 +953,6 @@ static VisitResult csv_visitor(
     return VISIT_CONTINUE;
 }
 
-static char *
-value_to_json_string(
-    yyjson_val *value) {
-    yyjson_mut_doc *doc =
-            yyjson_mut_doc_new(NULL);
-
-    if (!doc) {
-        return NULL;
-    }
-
-    yyjson_mut_val *root =
-            clone_value(
-                doc,
-                value);
-
-    yyjson_mut_doc_set_root(
-        doc,
-        root);
-
-    char *json =
-            yyjson_mut_write(
-                doc,
-                0,
-                NULL);
-
-    yyjson_mut_doc_free(
-        doc);
-
-    return json;
-}
-
 
 void extract_csv(
     yyjson_doc *doc,
