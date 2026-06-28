@@ -6,9 +6,6 @@
 #include "traversal.h"
 #include "writer.h"
 
-static char *
-value_to_json_string(
-    yyjson_val *value);
 
 /*
  * ============================================================
@@ -214,6 +211,37 @@ static void copy_value(
         clone_value(
             doc,
             src));
+}
+
+static char *
+value_to_json_string(
+    yyjson_val *value) {
+    yyjson_mut_doc *doc =
+            yyjson_mut_doc_new(NULL);
+
+    if (!doc) {
+        return NULL;
+    }
+
+    yyjson_mut_val *root =
+            clone_value(
+                doc,
+                value);
+
+    yyjson_mut_doc_set_root(
+        doc,
+        root);
+
+    char *json =
+            yyjson_mut_write(
+                doc,
+                0,
+                NULL);
+
+    yyjson_mut_doc_free(
+        doc);
+
+    return json;
 }
 
 /*
@@ -516,20 +544,20 @@ void extract_json(
     TraversalOptions opt = {
 
         .build_path =
-            rules->has_path_rule,
+        rules->has_path_rule,
 
         .parse_embedded_json =
-            1,
+        1,
 
         .max_embedded_depth =
-            5
+        5
     };
 
     bfs_walk(
-    yyjson_doc_get_root(doc),
-    &opt,
-    extract_visitor,
-    &ec);
+        yyjson_doc_get_root(doc),
+        &opt,
+        extract_visitor,
+        &ec);
 
     if (ec.found_count == 0) {
         yyjson_mut_doc_free(
@@ -587,11 +615,18 @@ static void csv_add_column(
                     ? 16
                     : ctx->column_cap * 2;
 
-        ctx->columns =
+        CsvColumn *tmp =
                 realloc(
                     ctx->columns,
                     sizeof(CsvColumn)
                     * new_cap);
+
+        if (!tmp) {
+            perror("realloc");
+            exit(EXIT_FAILURE);
+        }
+
+        ctx->columns = tmp;
 
         ctx->column_cap =
                 new_cap;
@@ -689,8 +724,8 @@ static VisitResult csv_visitor(
                             key,
                             sizeof(key),
                             prefix[0]
-                            ? "%s_network"
-                            : "network",
+                                ? "%s_network"
+                                : "network",
                             prefix);
 
                         csv_add_column(
@@ -704,8 +739,8 @@ static VisitResult csv_visitor(
                             key,
                             sizeof(key),
                             prefix[0]
-                            ? "%s_campaign"
-                            : "campaign",
+                                ? "%s_campaign"
+                                : "campaign",
                             prefix);
 
                         csv_add_column(
@@ -719,8 +754,8 @@ static VisitResult csv_visitor(
                             key,
                             sizeof(key),
                             prefix[0]
-                            ? "%s_adgroup"
-                            : "adgroup",
+                                ? "%s_adgroup"
+                                : "adgroup",
                             prefix);
 
                         csv_add_column(
@@ -734,8 +769,8 @@ static VisitResult csv_visitor(
                             key,
                             sizeof(key),
                             prefix[0]
-                            ? "%s_creative"
-                            : "creative",
+                                ? "%s_creative"
+                                : "creative",
                             prefix);
 
                         csv_add_column(
@@ -994,19 +1029,19 @@ void extract_csv(
     TraversalOptions opt = {
 
         .build_path =
-            rules->has_path_rule,
+        rules->has_path_rule,
 
         .parse_embedded_json =
-            1,
+        1,
 
         .max_embedded_depth =
-            5
+        5
     };
 
     bfs_walk(
         yyjson_doc_get_root(doc),
         &opt,
-        extract_visitor,
+        csv_visitor,
         &cc);
 
     if (cc.found_count == 0) {
@@ -1046,8 +1081,7 @@ void extract_csv(
      * --------------------------------------------------------
      */
     if (tracker_set
-    && tracker_set->count > 0)
-    {
+        && tracker_set->count > 0) {
         fputc(
             ',',
             out);
@@ -1226,8 +1260,8 @@ void extract_csv(
                     csv_get_value(
                         &cc,
                         key));
-                }
-             }
+            }
+        }
     }
 
     fputc(
