@@ -1289,3 +1289,83 @@ void extract_csv(
     free(
         cc.columns);
 }
+
+/*
+ * ============================================================
+ * csv_write_json_val
+ * ============================================================
+ *
+ * Writes a single yyjson_val as a CSV cell value.
+ * Used by keep-all CSV mode.
+ */
+
+void csv_write_json_val(
+    FILE *out,
+    yyjson_val *val)
+{
+    if (!val)
+    {
+        return;
+    }
+
+    if (yyjson_is_str(val))
+    {
+        csv_write_field(
+            out,
+            yyjson_get_str(val));
+    }
+    else if (yyjson_is_int(val))
+    {
+        fprintf(
+            out,
+            "%lld",
+            (long long)
+            yyjson_get_sint(val));
+    }
+    else if (yyjson_is_uint(val))
+    {
+        fprintf(
+            out,
+            "%llu",
+            (unsigned long long)
+            yyjson_get_uint(val));
+    }
+    else if (yyjson_is_real(val))
+    {
+        fprintf(
+            out,
+            "%.15g",
+            yyjson_get_real(val));
+    }
+    else if (yyjson_is_bool(val))
+    {
+        fputs(
+            yyjson_get_bool(val)
+                ? "true"
+                : "false",
+            out);
+    }
+    else if (yyjson_is_null(val))
+    {
+        /*
+         * null -> empty csv field
+         */
+    }
+    else
+    {
+        /*
+         * object / array -> inline json
+         */
+        char *json =
+            value_to_json_string(val);
+
+        if (json)
+        {
+            csv_write_field(
+                out,
+                json);
+
+            free(json);
+        }
+    }
+}

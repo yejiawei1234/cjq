@@ -35,6 +35,10 @@ int cli_parse(
     struct arg_int *offset;
     struct arg_lit *split_tracker;
 
+    struct arg_lit *keep_all_key;
+
+    struct arg_int *scan_lines;
+
     struct arg_str *split_tracker_fields;
     struct arg_end *end;
 
@@ -78,6 +82,19 @@ int cli_parse(
                 NULL,
                 "csv",
                 "csv output"),
+
+        keep_all_key =
+            arg_lit0(
+                "a",
+                "all",
+                "keep all keys"),
+
+        scan_lines =
+            arg_int0(
+                "n",
+                "scan-lines",
+                "<N>",
+                "scan first N lines for keys (default 200, only with -a --csv)"),
 
         input =
             arg_file0(
@@ -149,6 +166,9 @@ int cli_parse(
 
     cfg->csv_mode =
             csv->count > 0;
+    cfg->keep_all_key = keep_all_key->count > 0;
+
+    cfg->scan_lines = scan_lines->count ? scan_lines->ival[0] : 200;
 
     cfg->time_fields =
         time_fields->count

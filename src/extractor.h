@@ -21,6 +21,14 @@ void extract_csv(
     TrackerSplitSet *tracker_set,
     FILE *out);
 
+/*
+ * Write a yyjson_val as a CSV cell value (with CSV escaping).
+ * Used by keep-all mode to emit values for auto-discovered keys.
+ */
+void csv_write_json_val(
+    FILE *out,
+    yyjson_val *val);
+
 typedef struct {
     char *name;
     char *value;

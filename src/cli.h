@@ -9,6 +9,8 @@ typedef struct {
     char *keys;
 
     int csv_mode;
+
+    int keep_all_key;
     
     char *time_fields;
 
@@ -16,6 +18,8 @@ typedef struct {
     int split_tracker;
 
     char *split_tracker_fields;
+
+    int scan_lines;
 } CliConfig;
 
 int cli_parse(
