@@ -6,8 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "tracker_split.h"
-
 static const char *
 last_key(
     const char *path)
@@ -174,6 +172,64 @@ int split_tracker_name(
     const char *src,
     TrackerParts *parts)
 {
+    return split_tracker_name_len(
+        src,
+        src ? strlen(src) : 0,
+        parts);
+}
+
+static void copy_clean_part(
+    char *dst,
+    size_t dst_size,
+    const char *src,
+    size_t len)
+{
+    if (!dst || dst_size == 0)
+    {
+        return;
+    }
+
+    size_t out = 0;
+
+    for (size_t i = 0;
+         i < len && out + 1 < dst_size;
+         i++)
+    {
+        unsigned char ch =
+            (unsigned char)src[i];
+
+        if (ch == '\0')
+        {
+            if (i == 0
+                && len >= 6
+                && memcmp(
+                    src + 1,
+                    "ikTok",
+                    5) == 0)
+            {
+                dst[out++] = 'T';
+            }
+
+            continue;
+        }
+
+        if (ch < 0x20 && ch != '\t')
+        {
+            continue;
+        }
+
+        dst[out++] =
+            (char)ch;
+    }
+
+    dst[out] = '\0';
+}
+
+int split_tracker_name_len(
+    const char *src,
+    size_t len,
+    TrackerParts *parts)
+{
     if (!src || !parts)
     {
         return -1;
@@ -184,76 +240,48 @@ int split_tracker_name(
         0,
         sizeof(*parts));
 
-    char buf[2048];
+    char *targets[4] = {
+        parts->network,
+        parts->campaign,
+        parts->adgroup,
+        parts->creative
+    };
 
-    strncpy(
-        buf,
-        src,
-        sizeof(buf) - 1);
-
-    buf[
-        sizeof(buf) - 1] = '\0';
-
-    char *segments[4];
+    size_t sizes[4] = {
+        sizeof(parts->network),
+        sizeof(parts->campaign),
+        sizeof(parts->adgroup),
+        sizeof(parts->creative)
+    };
 
     int count = 0;
+    size_t start = 0;
 
-    char *start = buf;
-
-    while (count < 4)
+    for (size_t i = 0;
+         i <= len && count < 4;
+         i++)
     {
-        char *sep =
-            strstr(
-                start,
-                "::");
-
-        if (!sep)
+        if (i == len
+            || (i + 1 < len
+                && src[i] == ':'
+                && src[i + 1] == ':'))
         {
-            segments[count++] =
-                start;
+            copy_clean_part(
+                targets[count],
+                sizes[count],
+                src + start,
+                i - start);
 
-            break;
+            count++;
+
+            if (i == len)
+            {
+                break;
+            }
+
+            i++;
+            start = i + 1;
         }
-
-        *sep = '\0';
-
-        segments[count++] =
-            start;
-
-        start =
-            sep + 2;
-    }
-
-    if (count >= 1)
-    {
-        strncpy(
-            parts->network,
-            segments[0],
-            sizeof(parts->network) - 1);
-    }
-
-    if (count >= 2)
-    {
-        strncpy(
-            parts->campaign,
-            segments[1],
-            sizeof(parts->campaign) - 1);
-    }
-
-    if (count >= 3)
-    {
-        strncpy(
-            parts->adgroup,
-            segments[2],
-            sizeof(parts->adgroup) - 1);
-    }
-
-    if (count >= 4)
-    {
-        strncpy(
-            parts->creative,
-            segments[3],
-            sizeof(parts->creative) - 1);
     }
 
     return count;
@@ -269,7 +297,7 @@ const char *tracker_output_prefix(
     const char *key)
 {
     if (strcmp(
-            key,
+            last_key(key),
             "tracker_name") == 0)
     {
         return "";

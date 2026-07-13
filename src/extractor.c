@@ -288,43 +288,55 @@ static VisitResult extract_visitor(
                 output_key)) {
             TrackerParts parts;
 
-            if (split_tracker_name(
-                    yyjson_get_str(
-                        ctx->value),
+            if (split_tracker_name_len(
+                    yyjson_get_str(ctx->value),
+                    yyjson_get_len(ctx->value),
                     &parts) > 0) {
                 const char *prefix =
                         tracker_output_prefix(
                             output_key);
                 if (prefix[0] == '\0') {
-                    yyjson_mut_obj_add_str(
-                        ec->out_doc,
+                    yyjson_mut_obj_add(
                         ec->out_root,
-                        "network",
-                        parts.network);
+                        yyjson_mut_strcpy(
+                            ec->out_doc,
+                            "network"),
+                        yyjson_mut_strcpy(
+                            ec->out_doc,
+                            parts.network));
 
                     if (parts.campaign[0]) {
-                        yyjson_mut_obj_add_str(
-                            ec->out_doc,
+                        yyjson_mut_obj_add(
                             ec->out_root,
-                            "campaign",
-                            parts.campaign);
+                            yyjson_mut_strcpy(
+                                ec->out_doc,
+                                "campaign"),
+                            yyjson_mut_strcpy(
+                                ec->out_doc,
+                                parts.campaign));
                     }
 
                     if (parts.adgroup[0]) {
-                        yyjson_mut_obj_add_str(
-                            ec->out_doc,
+                        yyjson_mut_obj_add(
                             ec->out_root,
-                            "adgroup",
-                            parts.adgroup);
+                            yyjson_mut_strcpy(
+                                ec->out_doc,
+                                "adgroup"),
+                            yyjson_mut_strcpy(
+                                ec->out_doc,
+                                parts.adgroup));
                     }
 
 
                     if (parts.creative[0]) {
-                        yyjson_mut_obj_add_str(
-                            ec->out_doc,
+                        yyjson_mut_obj_add(
                             ec->out_root,
-                            "creative",
-                            parts.creative);
+                            yyjson_mut_strcpy(
+                                ec->out_doc,
+                                "creative"),
+                            yyjson_mut_strcpy(
+                                ec->out_doc,
+                                parts.creative));
                     }
                 } else {
                     char key[256];
@@ -429,14 +441,16 @@ static VisitResult extract_visitor(
                     "%s_epoch",
                     output_key);
 
-                yyjson_mut_obj_add_int(
-                    ec->out_doc,
-
+                yyjson_mut_obj_add(
                     ec->out_root,
 
-                    epoch_key,
+                    yyjson_mut_strcpy(
+                        ec->out_doc,
+                        epoch_key),
 
-                    epoch);
+                    yyjson_mut_sint(
+                        ec->out_doc,
+                        epoch));
             }
 
             /*
@@ -710,8 +724,9 @@ static VisitResult csv_visitor(
                     output_key)) {
                 TrackerParts parts;
 
-                if (split_tracker_name(
+                if (split_tracker_name_len(
                         str,
+                        yyjson_get_len(ctx->value),
                         &parts) > 0) {
                     const char *prefix =
                             tracker_output_prefix(

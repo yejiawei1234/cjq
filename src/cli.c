@@ -162,7 +162,11 @@ int cli_parse(
 
     cfg->output = output->count ? (char *) output->filename[0] : NULL;
 
-    cfg->keys = (char *) keys->sval[0];
+    cfg->keys =
+            keys->count
+            ? strdup(
+                keys->sval[0])
+            : NULL;
 
     cfg->csv_mode =
             csv->count > 0;
@@ -188,11 +192,19 @@ int cli_parse(
     if (cfg->split_tracker)
     {
         const char *tracker_key =
+            "context.tracker_name:tracker_name";
+        const char *tracker_name =
             "tracker_name";
 
-        if (!strstr(
+        if (!cfg->keys)
+        {
+            cfg->keys =
+                strdup(
+                    tracker_key);
+        }
+        else if (!strstr(
                 cfg->keys,
-                tracker_key))
+                tracker_name))
         {
             char *new_keys =
                 malloc(
@@ -214,7 +226,13 @@ int cli_parse(
     {
         const char *tracker_key = last_key(
             cfg->split_tracker_fields);
-        if (!strstr(
+        if (!cfg->keys)
+        {
+            cfg->keys =
+                strdup(
+                    tracker_key);
+        }
+        else if (!strstr(
                 cfg->keys,
                 tracker_key))
         {

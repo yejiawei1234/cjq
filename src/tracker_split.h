@@ -2,11 +2,9 @@
 // Created by jack ye on 6/20/26.
 //
 
-#ifndef CJQ_TRACKER_SPLIT_H
-#define CJQ_TRACKER_SPLIT_H
-
-#endif //CJQ_TRACKER_SPLIT_H
 #pragma once
+
+#include <stddef.h>
 
 typedef struct {
 
@@ -42,6 +40,11 @@ int should_split_tracker(
 
 int split_tracker_name(
     const char *src,
+    TrackerParts *parts);
+
+int split_tracker_name_len(
+    const char *src,
+    size_t len,
     TrackerParts *parts);
 
 const char *tracker_output_prefix(
